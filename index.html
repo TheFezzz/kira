@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Для тебя ♡</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="bg-decor" aria-hidden="true">
+    <span class="circle c1"></span>
+    <span class="circle c2"></span>
+    <span class="circle c3"></span>
+    <span class="circle c4"></span>
+  </div>
+
+  <header class="hero">
+    <p class="hero-sub">С любовью, только для тебя моя Любимая Кирочка ♥</p>
+    <h1>Наша история ♡</h1>
+    <div class="hero-hearts" aria-hidden="true">♥ ♥ ♥</div>
+  </header>
+
+  <main>
+    <!-- Счётчик отношений -->
+    <section class="section counter-section" id="counter">
+      <h2 class="section-title">Мы вместе уже</h2>
+      <p class="section-desc">С 9 сентября 2025 — каждая секунда с тобой бесценна</p>
+      <p class="counter-sentence">
+        <span class="counter-value" id="days">0</span> дней это
+        <span class="counter-value" id="hours">00</span> часов
+        <span class="counter-value" id="minutes">00</span> минут
+        <span class="counter-value" id="seconds">00</span> секунд
+      </p>
+    </section>
+
+    <!-- Кроссворд -->
+    <section class="section crossword-section" id="crossword">
+      <h2 class="section-title">Кроссворд комплиментов</h2>
+      <p class="section-desc">Зажми первую букву и проведи до последней — найди все слова о тебе</p>
+      <div class="crossword-progress">
+        <span id="found-count">0</span> / <span id="total-count">13</span> слов найдено
+      </div>
+      <div class="crossword-wrapper">
+        <div class="crossword-board">
+          <svg class="crossword-lines" id="crossword-lines" aria-hidden="true"></svg>
+          <div class="crossword-grid" id="crossword-grid"></div>
+        </div>
+      </div>
+      <ul class="word-list" id="word-list"></ul>
+    </section>
+
+    <!-- Календарь -->
+    <section class="section calendar-section" id="calendar">
+      <h2 class="section-title">Календарь воспоминаний</h2>
+      <p class="section-desc">Сентябрь 2025 — Июнь 2026 · Нажми на дату, чтобы открыть воспоминание</p>
+      <div class="calendar-nav">
+        <button class="nav-btn" id="prev-month" aria-label="Предыдущий месяц">‹</button>
+        <h3 class="calendar-month-title" id="calendar-title"></h3>
+        <button class="nav-btn" id="next-month" aria-label="Следующий месяц">›</button>
+      </div>
+      <div class="calendar-weekdays">
+        <span>Пн</span><span>Вт</span><span>Ср</span><span>Чт</span><span>Пт</span><span>Сб</span><span>Вс</span>
+      </div>
+      <div class="calendar-grid" id="calendar-grid"></div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>Сделано с любовью · Ты — моё солнышко ♡</p>
+  </footer>
+
+  <!-- Модальное окно календаря -->
+  <div class="modal-overlay" id="modal-overlay" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-date">
+      <button class="modal-close" id="modal-close" aria-label="Закрыть">×</button>
+      <h3 class="modal-date" id="modal-date"></h3>
+      <div class="modal-media">
+        <img class="modal-image" id="modal-image" src="" alt="Наше фото">
+        <div class="modal-video-wrap" id="modal-video-wrap">
+          <iframe id="modal-video" title="Видео воспоминание" frameborder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen></iframe>
+        </div>
+      </div>
+      <p class="modal-text" id="modal-text"></p>
+    </div>
+  </div>
+
+  <!-- Контейнер для частиц (конфетти / сердечки) -->
+  <div class="particles" id="particles" aria-hidden="true"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
