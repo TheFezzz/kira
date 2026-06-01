@@ -477,6 +477,178 @@
   window.addEventListener('resize', fitCrossword);
   window.addEventListener('orientationchange', () => setTimeout(fitCrossword, 150));
 
+  /* ===================== SURPRISES ===================== */
+  const FLIP_CARDS = [
+    { emoji: '👑', text: 'Ты моя принцесса — и это не шутка' },
+    { emoji: '☀️', text: 'С тобой даже обычный день — солнышко' },
+    { emoji: '🧸', text: 'Обнимать тебя — моё любимое занятие' },
+    { emoji: '🍰', text: 'Ты сладкая, как лучшая булочка' },
+    { emoji: '🌙', text: 'Про тебя я думаю даже перед сном' },
+    { emoji: '💫', text: 'Рядом с тобой я самый счастливый' }
+  ];
+
+  const loveEnvelope = document.getElementById('love-envelope');
+  const envelopeHint = document.getElementById('envelope-hint');
+  const flipGrid = document.getElementById('flip-grid');
+  const flipCountEl = document.getElementById('flip-count');
+  const flipTotalEl = document.getElementById('flip-total');
+  const flipReward = document.getElementById('flip-reward');
+  const catchStart = document.getElementById('catch-start');
+  const catchArena = document.getElementById('catch-arena');
+  const catchScoreEl = document.getElementById('catch-score');
+  const catchTimeEl = document.getElementById('catch-time');
+  const catchResult = document.getElementById('catch-result');
+  const envelopeLockNotice = document.getElementById('envelope-lock-notice');
+
+  let flippedCount = 0;
+  let envelopeUnlocked = false;
+
+  function unlockEnvelope() {
+    if (!loveEnvelope || envelopeUnlocked) return;
+    envelopeUnlocked = true;
+    loveEnvelope.classList.remove('envelope-locked');
+    loveEnvelope.removeAttribute('aria-disabled');
+    loveEnvelope.setAttribute('aria-label', 'Открыть письмо');
+    if (envelopeLockNotice) {
+      envelopeLockNotice.textContent = '✓ Сердечки пойманы! Теперь можно открыть письмо ♡';
+      envelopeLockNotice.classList.add('is-unlocked');
+    }
+    if (envelopeHint) {
+      envelopeHint.textContent = 'Нажми на конверт';
+    }
+  }
+
+  if (loveEnvelope) {
+    loveEnvelope.addEventListener('click', () => {
+      if (!envelopeUnlocked || loveEnvelope.classList.contains('opened')) {
+        if (!envelopeUnlocked) {
+          loveEnvelope.classList.add('envelope-shake');
+          setTimeout(() => loveEnvelope.classList.remove('envelope-shake'), 450);
+        }
+        return;
+      }
+      loveEnvelope.classList.add('opened');
+      if (envelopeHint) {
+        envelopeHint.textContent = 'Письмо для тебя ♡';
+        setTimeout(() => envelopeHint.classList.add('is-hidden'), 2000);
+      }
+      const rect = loveEnvelope.getBoundingClientRect();
+      spawnParticles(rect.left + rect.width / 2, rect.top + rect.height / 2);
+    });
+  }
+
+  if (flipGrid && flipTotalEl) {
+    flipTotalEl.textContent = FLIP_CARDS.length;
+
+    FLIP_CARDS.forEach((card, i) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'flip-card';
+      btn.setAttribute('aria-label', `Карточка ${i + 1}`);
+      btn.innerHTML = `
+        <span class="flip-card-inner">
+          <span class="flip-face flip-front">${card.emoji}</span>
+          <span class="flip-face flip-back">${card.text}</span>
+        </span>`;
+
+      btn.addEventListener('click', () => {
+        if (btn.classList.contains('is-flipped')) return;
+        btn.classList.add('is-flipped');
+        flippedCount++;
+        if (flipCountEl) flipCountEl.textContent = flippedCount;
+
+        if (flippedCount === FLIP_CARDS.length && flipReward) {
+          flipReward.hidden = false;
+          const rect = flipGrid.getBoundingClientRect();
+          spawnParticles(rect.left + rect.width / 2, rect.top + rect.height / 2);
+        }
+      });
+
+      flipGrid.appendChild(btn);
+    });
+  }
+
+  let catchTimer = null;
+  let catchSpawner = null;
+  let catchScore = 0;
+  let catchTimeLeft = 15;
+
+  function endCatchGame(won) {
+    clearInterval(catchTimer);
+    clearInterval(catchSpawner);
+    catchTimer = null;
+    catchSpawner = null;
+    if (catchStart) catchStart.disabled = false;
+    catchArena.querySelectorAll('.catch-heart').forEach((h) => h.remove());
+
+    if (catchResult) {
+      catchResult.hidden = false;
+      catchResult.textContent = won
+        ? 'Ура! Ты поймала все сердечки! Я тебя люблю ♡'
+        : 'Почти! Попробуй ещё раз — у тебя получится ♡';
+    }
+
+    if (won) {
+      const rect = catchArena.getBoundingClientRect();
+      spawnParticles(rect.left + rect.width / 2, rect.top);
+      unlockEnvelope();
+    }
+  }
+
+  function spawnCatchHeart() {
+    if (!catchArena.classList.contains('is-active')) return;
+
+    const heart = document.createElement('button');
+    heart.type = 'button';
+    heart.className = 'catch-heart';
+    heart.textContent = '♥';
+    heart.setAttribute('aria-label', 'Поймать сердечко');
+
+    const maxX = Math.max(0, catchArena.clientWidth - 40);
+    const maxY = Math.max(0, catchArena.clientHeight - 40);
+    heart.style.left = `${Math.random() * maxX}px`;
+    heart.style.top = `${Math.random() * maxY}px`;
+
+    heart.addEventListener('click', () => {
+      heart.remove();
+      catchScore++;
+      if (catchScoreEl) catchScoreEl.textContent = catchScore;
+      if (catchScore >= 10) endCatchGame(true);
+    });
+
+    catchArena.appendChild(heart);
+
+    setTimeout(() => {
+      if (heart.parentNode) heart.remove();
+    }, 2500);
+  }
+
+  if (catchStart && catchArena) {
+    catchStart.addEventListener('click', () => {
+      if (catchTimer) return;
+
+      catchScore = 0;
+      catchTimeLeft = 15;
+      if (catchScoreEl) catchScoreEl.textContent = '0';
+      if (catchTimeEl) catchTimeEl.textContent = '15';
+      if (catchResult) catchResult.hidden = true;
+
+      catchStart.disabled = true;
+      catchArena.classList.add('is-active');
+      catchArena.setAttribute('aria-hidden', 'false');
+      catchArena.querySelectorAll('.catch-heart').forEach((h) => h.remove());
+
+      spawnCatchHeart();
+      catchSpawner = setInterval(spawnCatchHeart, 700);
+
+      catchTimer = setInterval(() => {
+        catchTimeLeft--;
+        if (catchTimeEl) catchTimeEl.textContent = String(catchTimeLeft);
+        if (catchTimeLeft <= 0) endCatchGame(catchScore >= 10);
+      }, 1000);
+    });
+  }
+
   /* ===================== CALENDAR ===================== */
   const MONTH_NAMES = [
     'Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
@@ -486,51 +658,77 @@
   const CAL_START = { year: 2025, month: 8 };
   const CAL_END = { year: 2026, month: 5 };
 
-  /**
-   * Воспоминания по датам (ключ: YYYY-MM-DD).
-   * Заполни своими фото, видео и текстами:
-   *   image: URL или путь к локальному файлу
-   *   video: ID YouTube-видео (только ID, без URL)
-   *   text: текст воспоминания
-   */
-  const MEMORIES = {
-    '2025-09-09': {
-      image: 'https://picsum.photos/seed/love0909/520/320',
-      video: 'dQw4w9WgXcQ',
-      text: 'День, когда всё началось… Наш первый день вместе. Я помню каждую секунду этого вечера ♡'
-    },
-    '2025-09-14': {
-      image: 'https://picsum.photos/seed/love0914/520/320',
-      video: '',
-      text: 'Наша первая прогулка под звёздами. Ты смеялась, и мир стал прекраснее.'
-    },
-    '2025-10-01': {
-      image: 'https://picsum.photos/seed/love1001/520/320',
-      video: 'LXb3EKWsInQ',
-      text: 'Октябрь — месяц тёплых объятий и горячего какао вдвоём.'
-    },
-    '2025-12-31': {
-      image: 'https://picsum.photos/seed/love1231/520/320',
-      video: '',
-      text: 'Новый год мы встретили вместе. Пусть каждый следующий — только с тобой.'
-    },
-    '2026-02-14': {
-      image: 'https://picsum.photos/seed/love0214/520/320',
-      video: '3JZ_D3xNXRY',
-      text: 'День святого Валентина — а для меня каждый день с тобой — праздник любви.'
-    },
-    '2026-03-08': {
-      image: 'https://picsum.photos/seed/love0308/520/320',
-      video: '',
-      text: '8 марта — день моей принцессы. Ты заслуживаешь всего самого нежного.'
-    }
-  };
+  let MEMORIES = window.MEMORIES_DATA || {};
 
-  const DEFAULT_MEMORY = {
-    image: 'https://picsum.photos/seed/ourday/520/320',
-    video: '',
-    text: 'Здесь будет наше воспоминание… Добавь текст, фото и видео в объект MEMORIES в app.js ♡'
-  };
+  function mediaPath(entry, filename) {
+    if (entry.folder) {
+      return `${entry.folder}/${filename}`;
+    }
+    return filename;
+  }
+
+  function encodePath(path) {
+    return path.split('/').map(encodeURIComponent).join('/');
+  }
+
+  const EMOJI_RULES = [
+    [/поцел|поцелов/i, '💋'],
+    [/фотосесс|пофотк/i, '📸✨'],
+    [/кино/i, '🎬🍿'],
+    [/колесо обозрения/i, '🎡💫'],
+    [/день рожд|тортик|18 лет/i, '🎂🎉'],
+    [/зал/i, '💪'],
+    [/дач/i, '🌿🏡'],
+    [/котик|кота|кот/i, '🐱'],
+    [/уточ/i, '🦆☕'],
+    [/кофе/i, '☕'],
+    [/минск|зоопарк|немиг/i, '🦁🐾'],
+    [/шаурм|пите/i, '🌯'],
+    [/кроссов/i, '👟💕'],
+    [/ногти/i, '💅'],
+    [/видео|дурачил/i, '📹😄'],
+    [/домой/i, '🏠'],
+    [/встреч/i, '💑'],
+    [/спичк|петард/i, '🔥😄'],
+    [/отпечат.*рук/i, '🤝✋'],
+    [/6 месяц/i, '💖🎊'],
+    [/мост/i, '🌉'],
+    [/каникул/i, '🎄💝'],
+    [/бабушк/i, '👵🎂'],
+    [/первый раз/i, '💕✨'],
+    [/предложил встреч/i, '💍💑']
+  ];
+
+  function collectEmojis(emojiStr) {
+    return [...emojiStr].filter((ch) => /\p{Extended_Pictographic}/u.test(ch));
+  }
+
+  function enrichTextWithEmojis(text) {
+    const emojis = [];
+    for (const [pattern, emojiStr] of EMOJI_RULES) {
+      if (pattern.test(text)) {
+        collectEmojis(emojiStr).forEach((e) => {
+          if (!emojis.includes(e)) emojis.push(e);
+        });
+      }
+    }
+    const prefix = emojis.length ? emojis.slice(0, 5).join(' ') + ' ' : '💕 ';
+    const hasHeart = /[♡❤💕💖]/.test(text);
+    return prefix + text + (hasHeart ? '' : ' ♡');
+  }
+
+  async function loadMemoryText(entry) {
+    const path = entry.folder
+      ? `${entry.folder}/${entry.textFile || 'Текстовый документ.txt'}`
+      : entry.textFile;
+    try {
+      const res = await fetch(encodePath(path));
+      if (res.ok) {
+        return enrichTextWithEmojis((await res.text()).trim());
+      }
+    } catch (_) { /* offline or file:// */ }
+    return enrichTextWithEmojis(entry.text || '');
+  }
 
   let currentYear = CAL_START.year;
   let currentMonth = CAL_START.month;
@@ -583,13 +781,14 @@
       el.textContent = day;
 
       const dateKey = formatDateKey(currentYear, currentMonth, day);
-      const inRange = isInRange(currentYear, currentMonth);
+      const memory = MEMORIES[dateKey];
 
-      if (inRange) {
-        el.classList.add('active');
-        if (MEMORIES[dateKey]) el.classList.add('has-memory');
+      if (memory) {
+        el.classList.add('active', 'has-memory');
         if (dateKey === '2025-09-09') el.classList.add('special');
         el.addEventListener('click', () => openModal(currentYear, currentMonth, day));
+      } else if (isInRange(currentYear, currentMonth)) {
+        el.classList.add('inactive');
       }
 
       calendarGrid.appendChild(el);
@@ -618,40 +817,170 @@
 
   renderCalendar();
 
+  fetch('memories.json')
+    .then((res) => (res.ok ? res.json() : null))
+    .then((data) => {
+      if (data && Object.keys(data).length) {
+        MEMORIES = data;
+        renderCalendar();
+      }
+    })
+    .catch(() => {});
+
   /* ===================== MODAL ===================== */
   const overlay = document.getElementById('modal-overlay');
   const modalClose = document.getElementById('modal-close');
   const modalDate = document.getElementById('modal-date');
-  const modalImage = document.getElementById('modal-image');
-  const modalVideo = document.getElementById('modal-video');
-  const modalVideoWrap = document.getElementById('modal-video-wrap');
   const modalText = document.getElementById('modal-text');
+  const modalSlider = document.getElementById('modal-slider');
+  const sliderTrack = document.getElementById('slider-track');
+  const sliderDots = document.getElementById('slider-dots');
+  const sliderCounter = document.getElementById('slider-counter');
+  const sliderPrev = document.getElementById('slider-prev');
+  const sliderNext = document.getElementById('slider-next');
+  const modalVideos = document.getElementById('modal-videos');
 
-  function openModal(year, month, day) {
-    const dateKey = formatDateKey(year, month, day);
-    const memory = MEMORIES[dateKey] || DEFAULT_MEMORY;
+  let sliderIndex = 0;
+  let sliderImages = [];
+  let activeVideos = [];
 
-    modalDate.textContent = formatDateDisplay(year, month, day);
-    modalImage.src = memory.image;
-    modalImage.alt = `Фото — ${formatDateDisplay(year, month, day)}`;
-    modalText.textContent = memory.text;
+  function stopAllVideos() {
+    activeVideos.forEach((v) => {
+      v.pause();
+      v.currentTime = 0;
+    });
+    activeVideos = [];
+  }
 
-    if (memory.video) {
-      modalVideoWrap.hidden = false;
-      modalVideo.src = `https://www.youtube.com/embed/${memory.video}?autoplay=0`;
-    } else {
-      modalVideoWrap.hidden = true;
-      modalVideo.src = '';
+  function buildSlider(images, dateLabel) {
+    sliderImages = images;
+    sliderIndex = 0;
+    sliderTrack.innerHTML = '';
+    sliderDots.innerHTML = '';
+
+    if (images.length === 0) {
+      modalSlider.hidden = true;
+      return;
     }
+
+    modalSlider.hidden = false;
+
+    images.forEach((src, i) => {
+      const slide = document.createElement('div');
+      slide.className = 'slider-slide';
+      const img = document.createElement('img');
+      img.src = src;
+      img.alt = `Фото ${i + 1} — ${dateLabel}`;
+      img.loading = 'lazy';
+      slide.appendChild(img);
+      sliderTrack.appendChild(slide);
+
+      const dot = document.createElement('button');
+      dot.type = 'button';
+      dot.className = 'slider-dot' + (i === 0 ? ' active' : '');
+      dot.setAttribute('aria-label', `Фото ${i + 1}`);
+      dot.addEventListener('click', () => goToSlide(i));
+      sliderDots.appendChild(dot);
+    });
+
+    updateSlider();
+  }
+
+  function updateSlider() {
+    sliderTrack.style.transform = `translateX(-${sliderIndex * 100}%)`;
+    sliderDots.querySelectorAll('.slider-dot').forEach((dot, i) => {
+      dot.classList.toggle('active', i === sliderIndex);
+    });
+    sliderCounter.textContent = sliderImages.length > 1
+      ? `${sliderIndex + 1} / ${sliderImages.length}`
+      : '';
+    sliderPrev.disabled = sliderIndex === 0;
+    sliderNext.disabled = sliderIndex === sliderImages.length - 1;
+  }
+
+  function goToSlide(index) {
+    sliderIndex = Math.max(0, Math.min(index, sliderImages.length - 1));
+    updateSlider();
+  }
+
+  sliderPrev.addEventListener('click', () => goToSlide(sliderIndex - 1));
+  sliderNext.addEventListener('click', () => goToSlide(sliderIndex + 1));
+
+  let touchStartX = 0;
+  modalSlider.addEventListener('touchstart', (e) => {
+    touchStartX = e.touches[0].clientX;
+  }, { passive: true });
+
+  modalSlider.addEventListener('touchend', (e) => {
+    const diff = e.changedTouches[0].clientX - touchStartX;
+    if (Math.abs(diff) > 40) {
+      goToSlide(sliderIndex + (diff < 0 ? 1 : -1));
+    }
+  }, { passive: true });
+
+  function buildVideoGallery(videos, dateLabel) {
+    stopAllVideos();
+    modalVideos.innerHTML = '';
+
+    if (videos.length === 0) {
+      modalVideos.hidden = true;
+      return;
+    }
+
+    modalVideos.hidden = false;
+
+    videos.forEach((src, i) => {
+      const wrap = document.createElement('div');
+      wrap.className = 'video-card';
+
+      const label = document.createElement('span');
+      label.className = 'video-label';
+      label.textContent = videos.length > 1 ? `Видео ${i + 1} 🎬` : 'Наше видео 🎬';
+
+      const video = document.createElement('video');
+      video.className = 'modal-video';
+      video.src = src;
+      video.controls = true;
+      video.playsInline = true;
+      video.preload = 'metadata';
+      video.setAttribute('aria-label', `Видео ${i + 1} — ${dateLabel}`);
+
+      wrap.appendChild(label);
+      wrap.appendChild(video);
+      modalVideos.appendChild(wrap);
+      activeVideos.push(video);
+    });
+  }
+
+  async function openModal(year, month, day) {
+    const dateKey = formatDateKey(year, month, day);
+    const entry = MEMORIES[dateKey];
+    if (!entry) return;
+
+    const dateLabel = formatDateDisplay(year, month, day);
+    modalDate.textContent = dateLabel;
+    modalText.textContent = 'Загружаем воспоминание…';
+
+    const images = (entry.images || []).map((f) => encodePath(mediaPath(entry, f)));
+    const videos = (entry.videos || []).map((f) => encodePath(mediaPath(entry, f)));
+
+    buildSlider(images, dateLabel);
+    buildVideoGallery(videos, dateLabel);
 
     overlay.hidden = false;
     requestAnimationFrame(() => overlay.classList.add('visible'));
     document.body.style.overflow = 'hidden';
+
+    modalText.textContent = await loadMemoryText(entry);
   }
 
   function closeModal() {
     overlay.classList.remove('visible');
-    modalVideo.src = '';
+    stopAllVideos();
+    sliderTrack.innerHTML = '';
+    modalVideos.innerHTML = '';
+    modalSlider.hidden = true;
+    modalVideos.hidden = true;
     document.body.style.overflow = '';
     setTimeout(() => {
       overlay.hidden = true;
@@ -664,6 +993,78 @@
   });
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && !overlay.hidden) closeModal();
+    if (!overlay.hidden && e.key === 'ArrowLeft') goToSlide(sliderIndex - 1);
+    if (!overlay.hidden && e.key === 'ArrowRight') goToSlide(sliderIndex + 1);
   });
+
+  /* ===================== LOVE GATE ===================== */
+  const gateOverlay = document.getElementById('gate-overlay');
+  const gateYes = document.getElementById('gate-yes');
+  const gateNo = document.getElementById('gate-no');
+  const gateNoZone = document.getElementById('gate-no-zone');
+  const siteContent = document.getElementById('site-content');
+
+  function moveNoButton() {
+    if (!gateNoZone || !gateNo) return;
+
+    const maxX = Math.max(0, gateNoZone.clientWidth - gateNo.offsetWidth - 8);
+    const maxY = Math.max(0, gateNoZone.clientHeight - gateNo.offsetHeight - 8);
+    const x = 4 + Math.random() * maxX;
+    const y = 4 + Math.random() * maxY;
+
+    gateNo.classList.add('is-dodging');
+    gateNo.style.left = `${x}px`;
+    gateNo.style.top = `${y}px`;
+    gateNo.style.transform = 'none';
+  }
+
+  function revealSite() {
+    gateYes.disabled = true;
+    gateOverlay.classList.add('gate-hide');
+    document.body.classList.remove('gate-active');
+    siteContent.classList.remove('site-locked');
+    siteContent.classList.add('site-revealed');
+
+    const items = document.querySelectorAll('.reveal-item');
+    items.forEach((el, i) => {
+      setTimeout(() => {
+        el.classList.add('is-visible');
+      }, 350 + i * 300);
+    });
+
+    setTimeout(() => {
+      gateOverlay.remove();
+      window.dispatchEvent(new Event('resize'));
+      requestAnimationFrame(() => window.dispatchEvent(new Event('resize')));
+    }, 350 + items.length * 300 + 700);
+  }
+
+  if (gateYes) {
+    gateYes.addEventListener('click', revealSite);
+  }
+
+  if (gateNo) {
+    gateNo.addEventListener('click', (e) => {
+      e.preventDefault();
+      moveNoButton();
+    });
+
+    gateNo.addEventListener('mouseenter', moveNoButton);
+
+    gateNo.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      moveNoButton();
+    }, { passive: false });
+
+    gateNoZone.addEventListener('touchmove', (e) => {
+      const touch = e.touches[0];
+      const rect = gateNo.getBoundingClientRect();
+      const near = touch.clientX >= rect.left - 30 &&
+        touch.clientX <= rect.right + 30 &&
+        touch.clientY >= rect.top - 30 &&
+        touch.clientY <= rect.bottom + 30;
+      if (near) moveNoButton();
+    }, { passive: true });
+  }
 
 })();

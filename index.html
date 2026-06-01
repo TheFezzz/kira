@@ -6,7 +6,23 @@
   <title>Для тебя ♡</title>
   <link rel="stylesheet" href="styles.css">
 </head>
-<body>
+<body class="gate-active">
+  <!-- Вход на сайт -->
+  <div class="gate-overlay" id="gate-overlay">
+    <div class="gate-card">
+      <p class="gate-hearts" aria-hidden="true">♥ ♥ ♥</p>
+      <h2 class="gate-title">Чтобы зайти на сайт, нужно ответить:</h2>
+      <p class="gate-question">Ты любишь меня?</p>
+      <div class="gate-buttons">
+        <button type="button" class="gate-btn gate-btn-yes" id="gate-yes">Да ♡</button>
+        <div class="gate-no-zone" id="gate-no-zone">
+          <button type="button" class="gate-btn gate-btn-no" id="gate-no">Нет</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="site-content" class="site-content site-locked">
   <div class="bg-decor" aria-hidden="true">
     <span class="circle c1"></span>
     <span class="circle c2"></span>
@@ -14,7 +30,7 @@
     <span class="circle c4"></span>
   </div>
 
-  <header class="hero">
+  <header class="hero reveal-item">
     <p class="hero-sub">С любовью, только для тебя моя Любимая Кирочка ♥</p>
     <h1>Наша история ♡</h1>
     <div class="hero-hearts" aria-hidden="true">♥ ♥ ♥</div>
@@ -22,7 +38,7 @@
 
   <main>
     <!-- Счётчик отношений -->
-    <section class="section counter-section" id="counter">
+    <section class="section counter-section reveal-item" id="counter">
       <h2 class="section-title">Мы вместе уже</h2>
       <p class="section-desc">С 9 сентября 2025 — каждая секунда с тобой бесценна</p>
       <p class="counter-sentence">
@@ -33,8 +49,50 @@
       </p>
     </section>
 
+    <!-- Сюрпризы -->
+    <section class="section surprises-section reveal-item" id="surprises">
+      <h2 class="section-title">Сюрпризы для тебя</h2>
+      <p class="section-desc">Открой карточки, поймай сердечки и загляни в конверт — маленькие секреты только для тебя</p>
+
+      <div class="surprise-block">
+        <h3 class="surprise-subtitle">🃏 Карточки-секреты</h3>
+        <p class="flip-progress">Открыто: <span id="flip-count">0</span> / <span id="flip-total">6</span></p>
+        <div class="flip-grid" id="flip-grid"></div>
+        <p class="flip-reward" id="flip-reward" hidden>Ты открыла все секреты! Я тебя обожаю бесконечно ♡</p>
+      </div>
+
+      <div class="surprise-block">
+        <h3 class="surprise-subtitle">🎯 Поймай сердечки</h3>
+        <p class="catch-desc">Нажми на <strong>10</strong> сердечек за <strong>15</strong> секунд!</p>
+        <div class="catch-stats">
+          <span>Поймано: <strong id="catch-score">0</strong> / 10</span>
+          <span>Время: <strong id="catch-time">15</strong>с</span>
+        </div>
+        <button type="button" class="catch-start-btn" id="catch-start">Начать игру ♡</button>
+        <div class="catch-arena" id="catch-arena" aria-hidden="true"></div>
+        <p class="catch-result" id="catch-result" hidden></p>
+
+        <h3 class="surprise-subtitle surprise-subtitle-spaced">💌 Секретное письмо</h3>
+        <p class="envelope-lock-notice" id="envelope-lock-notice">🔒 Сначала поймай <strong>10 сердечек</strong> в игре выше — тогда откроется письмо</p>
+        <div class="envelope-scene">
+          <button type="button" class="envelope envelope-locked" id="love-envelope" aria-label="Конверт закрыт — сначала поймай 10 сердечек" aria-disabled="true">
+            <span class="envelope-back"></span>
+            <span class="envelope-letter">
+              <p class="letter-greeting">Моя любимая Кирочка,</p>
+              <p>каждый день с тобой — как маленький праздник. Спасибо, что ты есть. Я люблю тебя больше, чем все звёзды на небе.</p>
+              <p class="letter-sign">Твой, навсегда ♡</p>
+            </span>
+            <span class="envelope-front"></span>
+            <span class="envelope-flap"></span>
+            <span class="envelope-heart">♥</span>
+          </button>
+          <p class="envelope-hint" id="envelope-hint">Конверт пока закрыт</p>
+        </div>
+      </div>
+    </section>
+
     <!-- Кроссворд -->
-    <section class="section crossword-section" id="crossword">
+    <section class="section crossword-section reveal-item" id="crossword">
       <h2 class="section-title">Кроссворд комплиментов</h2>
       <p class="section-desc">Зажми первую букву и проведи до последней — найди все слова о тебе</p>
       <div class="crossword-progress">
@@ -50,9 +108,9 @@
     </section>
 
     <!-- Календарь -->
-    <section class="section calendar-section" id="calendar">
+    <section class="section calendar-section reveal-item" id="calendar">
       <h2 class="section-title">Календарь воспоминаний</h2>
-      <p class="section-desc">Сентябрь 2025 — Июнь 2026 · Нажми на дату, чтобы открыть воспоминание</p>
+      <p class="section-desc">Сентябрь 2025 — Июнь 2026 · Нажми на дату с ♥, чтобы открыть воспоминание</p>
       <div class="calendar-nav">
         <button class="nav-btn" id="prev-month" aria-label="Предыдущий месяц">‹</button>
         <h3 class="calendar-month-title" id="calendar-title"></h3>
@@ -65,9 +123,10 @@
     </section>
   </main>
 
-  <footer class="footer">
+  <footer class="footer reveal-item">
     <p>Сделано с любовью · Ты — моё солнышко ♡</p>
   </footer>
+  </div>
 
   <!-- Модальное окно календаря -->
   <div class="modal-overlay" id="modal-overlay" hidden>
@@ -75,12 +134,16 @@
       <button class="modal-close" id="modal-close" aria-label="Закрыть">×</button>
       <h3 class="modal-date" id="modal-date"></h3>
       <div class="modal-media">
-        <img class="modal-image" id="modal-image" src="" alt="Наше фото">
-        <div class="modal-video-wrap" id="modal-video-wrap">
-          <iframe id="modal-video" title="Видео воспоминание" frameborder="0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowfullscreen></iframe>
+        <div class="slider" id="modal-slider" hidden>
+          <button type="button" class="slider-btn slider-prev" id="slider-prev" aria-label="Предыдущее фото">‹</button>
+          <div class="slider-viewport">
+            <div class="slider-track" id="slider-track"></div>
+          </div>
+          <button type="button" class="slider-btn slider-next" id="slider-next" aria-label="Следующее фото">›</button>
+          <div class="slider-counter" id="slider-counter"></div>
+          <div class="slider-dots" id="slider-dots"></div>
         </div>
+        <div class="video-gallery" id="modal-videos" hidden></div>
       </div>
       <p class="modal-text" id="modal-text"></p>
     </div>
@@ -89,6 +152,7 @@
   <!-- Контейнер для частиц (конфетти / сердечки) -->
   <div class="particles" id="particles" aria-hidden="true"></div>
 
+  <script src="memories-data.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
