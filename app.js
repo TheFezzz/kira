@@ -51,7 +51,10 @@
     { word: 'булочка', row: 12, col: 1, dir: 'h' },
     { word: 'зайка', row: 13, col: 4, dir: 'h' },
     { word: 'котик', row: 14, col: 6, dir: 'h' },
-    { word: 'китя', row: 15, col: 7, dir: 'h' }
+    { word: 'китя', row: 15, col: 7, dir: 'h' },
+    { word: 'умничка', row: 8, col: 7, dir: 'h' },
+    { word: 'зёпа', row: 9, col: 11, dir: 'h' },
+    { word: 'котенок', row: 16, col: 1, dir: 'h' }
   ];
 
   function getCellsForWord(w) {
@@ -136,34 +139,44 @@
   const CROSSWORD_GAP = 3;
   const CROSSWORD_MAX_CELL = 38;
   const CROSSWORD_MIN_CELL = 16;
+  const MOBILE_BREAKPOINT = 430;
+  const MOBILE_MIN_CELL = 24;
+  const MOBILE_GAP = 2;
 
-  function applyCrosswordCellSize(cellSize) {
+  function applyCrosswordCellSize(cellSize, gap) {
     gridEl.style.gridTemplateColumns = `repeat(${crossword.cols}, ${cellSize}px)`;
     gridEl.style.gridTemplateRows = `repeat(${crossword.rows}, ${cellSize}px)`;
-    gridEl.style.gap = `${CROSSWORD_GAP}px`;
+    gridEl.style.gap = `${gap}px`;
     document.documentElement.style.setProperty('--crossword-cell-size', `${cellSize}px`);
+    document.documentElement.style.setProperty('--crossword-gap', `${gap}px`);
   }
 
   function fitCrossword() {
     if (!crosswordWrapper) return;
 
+    const isMobile = window.innerWidth <= MOBILE_BREAKPOINT;
+    const gap = isMobile ? MOBILE_GAP : CROSSWORD_GAP;
+    const minCell = isMobile ? MOBILE_MIN_CELL : CROSSWORD_MIN_CELL;
+
     const styles = getComputedStyle(crosswordWrapper);
     const padX = parseFloat(styles.paddingLeft) + parseFloat(styles.paddingRight);
     const availableWidth = crosswordWrapper.clientWidth - padX;
 
-    let cellByWidth = (availableWidth - (crossword.cols - 1) * CROSSWORD_GAP) / crossword.cols;
+    let cellByWidth = (availableWidth - (crossword.cols - 1) * gap) / crossword.cols;
     cellByWidth = Math.floor(cellByWidth);
 
-    let cellSize = Math.min(CROSSWORD_MAX_CELL, Math.max(CROSSWORD_MIN_CELL, cellByWidth));
+    let cellSize = Math.min(CROSSWORD_MAX_CELL, Math.max(minCell, cellByWidth));
 
-    if (window.innerWidth <= 430) {
-      const maxGridHeight = Math.min(window.innerHeight * 0.42, 340);
-      let cellByHeight = (maxGridHeight - (crossword.rows - 1) * CROSSWORD_GAP) / crossword.rows;
+    if (isMobile) {
+      cellSize = Math.max(MOBILE_MIN_CELL, cellSize);
+    } else {
+      const maxGridHeight = Math.min(window.innerHeight * 0.55, 420);
+      let cellByHeight = (maxGridHeight - (crossword.rows - 1) * gap) / crossword.rows;
       cellByHeight = Math.floor(cellByHeight);
       cellSize = Math.max(CROSSWORD_MIN_CELL, Math.min(cellSize, cellByHeight));
     }
 
-    applyCrosswordCellSize(cellSize);
+    applyCrosswordCellSize(cellSize, gap);
     resizeSvg();
   }
 
